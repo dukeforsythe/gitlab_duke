@@ -1,0 +1,36 @@
+---
+language: python
+python: "2.7"
+
+before_install:
+
+    - sudo apt-get update
+
+install:
+
+    # Install Ansible.
+    - sudo apt-get -y install ansible
+    - sudo apt-get -y install strace
+    - ansible-playbook --version
+
+script:
+
+    # Create role symlink.
+    - mkdir -p roles && ln -s .. ./roles/chrony
+
+    # Check the role/playbook's syntax.
+    - ansible-playbook -i inventories/local.ini deploy.yml --syntax-check
+
+    # Run the role/playbook with ansible-playbook.
+    - ansible-playbook -i inventories/local.ini deploy.yml
+
+    # Run the role/playbook with ansible-playbook.
+    - ansible-playbook -i inventories/local.ini deploy.yml
+
+    # properly idempotence should require no changes, but the travis vm seems to
+    # have trouble running chrony...
+    - >
+      ansible-playbook -i inventories/local.ini deploy.yml
+      | grep -q 'changed=0 .*failed=0'
+      && (echo 'Idempotence test: pass' && exit 0)
+      || (echo 'Idempotence test: fail' && exit 1)

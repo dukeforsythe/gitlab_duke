@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Mark Stillwell
+  description: Chrony
+  license: GPLv2
+  min_ansible_version: 1.2
+  platforms:
+  - name: Ubuntu
+    versions:
+    - precise
+    - quantal
+    - raring
+    - saucy
+    - trusty
+  - name: CentOS
+    versions:
+    - 6.5
+    - 7
+  categories:
+    - system
+dependencies: []
