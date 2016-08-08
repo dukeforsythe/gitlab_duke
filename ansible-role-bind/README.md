@@ -222,9 +222,4 @@ $ ln -frs ../filter_plugins/ .
 
 BSD
 
-## Contributors
 
-Issues, feature requests, ideas, suggestions, etc. are appreciated and can be posted in the Issues section. Pull requests are also very welcome. Preferably, create a topic branch and when submitting, squash your commits into one (with a descriptive message).
-
-- [Bert Van Vreckem](https://github.com/bertvv/) (Maintainer)
-- [Joanna Delaporte](https://github.com/jdelaporte)
