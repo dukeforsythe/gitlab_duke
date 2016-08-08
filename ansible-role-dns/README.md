@@ -5,16 +5,18 @@ Ansible role for configure DNS
 
 # Examples :
 ```
-- hosts: all
+- hosts: dev
   roles: 
   - role: ansible-role-dns
-    dns_domain: localdomain
-    dns_nameservers: ['127.0.0.1', '8.8.8.8']
+    dns_domain: dev.nonprod
+    dns_nameservers: ['10.130.10.64']
+    dns_searchs: "qa.nonprod dev.nonprod"
 
-- hosts: all
+- hosts: qa
   roles:
   - role: ansible-role-dns
-    dns_nameservers: ['8.8.8.8']  
-    dns_searchs: "localdomain otherdomain"
+    dns_domain: qa.nonprod
+    dns_nameservers: ['10.130.10.64']  
+    dns_searchs: "qa.nonprod dev.nonprod"
 
 ```
