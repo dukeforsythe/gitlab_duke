@@ -1,0 +1,8 @@
+[idm-servers]
+idm.example.com
+
+[idm-clients]
+efk.example.com
+rhevm.example.com
+rhevh1.example.com
+#rhevh2.example.com

@@ -4,4 +4,4 @@ ntp_timezone: Etc/UTC
 
 ntp_manage_config: false
 ntp_servers:
- - NMLEVADIRML010 iburst
+ - NMLEVADIRML010.dev.nonprod iburst

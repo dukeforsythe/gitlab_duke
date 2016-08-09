@@ -1,0 +1,27 @@
+---
+### Basic setup
+
+remote_user: root
+become: yes
+become_method: sudo
+
+# IdM Server
+idm_domain: example.com
+idm_realm: EXAMPLE.COM
+idm_server: idm.example.com
+idm_server_ip: 192.168.2.84
+idm_admin_user: admin
+idm_principal: "{{ idm_admin_user }}@{{ idm_realm }}"
+idm_master_password: "{{ vault_idm_master_password }}"
+idm_admin_password: "{{ vault_idm_master_password }}"
+idm_ds_password: "{{ vault_idm_master_password }}"
+dns_reverse_zone: 2.168.192.in-addr.arpa.
+dns_forwarder: 192.168.2.1
+gateway_ip: 192.168.2.1
+netmask: 255.255.255.0
+
+# Red Hat Subscription Management
+rhsm_user: "{{ vault_rhsm_user }}"
+rhsm_password: "{{ vault_rhsm_password }}"
+rhsm_autosubscribe: false
+rhsm_pool: "{{ vault_rhsm_pool }}"

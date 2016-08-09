@@ -1,0 +1,41 @@
+---
+- name: template network configuration file
+  template: src=templates/ifcfg-eth0.j2 dest=/etc/sysconfig/network-scripts/ifcfg-eth0 owner=root group=root mode=0644
+  when: ansible_distribution == 'RedHat'
+
+- name: template resolv.conf file
+  template: src=templates/resolv.conf.j2 dest=/etc/resolv.conf owner=root group=root mode=0644
+  when: ansible_distribution == 'RedHat'
+
+- name: stop NetworkManager
+  command: systemctl stop NetworkManager
+  when: ansible_distribution == 'RedHat'
+
+- name: disable networkmanager
+  command: systemctl disable NetworkManager
+  when: ansible_distribution == 'RedHat'
+  notify: restart network
+
+- name: register with red hat cdn
+  redhat_subscription: state=present username={{ rhsm_user }} password={{ rhsm_password }} autosubscribe={{ rhsm_autosubscribe }} pool={{ rhsm_pool }}
+  when: ansible_distribution == 'RedHat'
+
+- name: disable all repos and enable only the essential ones
+  command: subscription-manager repos --disable=\* --enable=rhel-7-server-rpms --enable=rhel-7-server-satellite-tools-6.1-rpms
+  when: ansible_distribution == 'RedHat'
+
+- name: install some common packages
+  action: "{{ ansible_pkg_mgr }} name={{item}} state=present"
+  with_items:
+      - vim
+      - lvm2
+      - bash-completion
+      - bind-utils
+      - nfs-utils
+      - chrony
+      - nmap
+  when: ansible_distribution == 'RedHat'
+
+- name: upgrade all packages
+  yum: name=* state=latest
+  when: ansible_distribution == 'RedHat'

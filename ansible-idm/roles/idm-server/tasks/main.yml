@@ -1,0 +1,58 @@
+---
+- name: install idm server packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+      - ipa-server
+      - ipa-server-dns
+
+- name: configure idm
+  command: ipa-server-install --unattended --hostname={{ inventory_hostname }} --domain={{ idm_domain }} --realm={{ idm_realm }} --admin-password={{ idm_admin_password }} --master-password={{ idm_master_password }} --ds-password={{ idm_ds_password }} --no-ntp --setup-dns --reverse-zone={{ dns_reverse_zone }} --forwarder={{ dns_forwarder }} --mkhomedir creates=/etc/ipa/default.conf
+  no_log: true
+
+- name: obtain kerberos ticket
+  shell: echo -e "{{ idm_admin_password }}" | kinit "{{ idm_admin_user }}@{{ idm_realm }}"
+  no_log: true
+
+- name: sync ptr records on dns updates
+  command: ipa dnsconfig-mod --allow-sync-ptr=true
+
+- name: set bash as default shell
+  command: ipa config-mod --defaultshell=/bin/bash
+
+- name: set defaults for user authentication
+  command: ipa config-mod --user-auth-type=password --user-auth-type=otp
+
+- name: make ipausers a posix group
+  command: ipa group-mod --posix ipausers
+
+- name: add roles to idm
+  command: 'ipa group-add {{ item.role }} --desc="{{ item.desc }}"'
+  ignore_errors: yes
+  with_items:
+    - { role: 'BUS-App-Own', desc: 'Application Owner, owns the application that supports business' }
+    - { role: 'BUS-Req-Eng', desc: 'Requirements Engineer, gather and formalize requirements of other parts of ACME to be handed over to IT-Dev' }
+    - { role: 'IT-Prod-Own', desc: 'Product Owner, owns the IT Product that implements Business Requirements' }
+    - { role: 'IT-Dev-Dev', desc: 'A software developer, responsible for delivering software.' }
+    - { role: 'IT-Dev-Ops-Eng', desc: 'A development engineer, able to add images to the platform' }
+    - { role: 'IT-Dev-QA-Eng', desc: 'Engineer performing QA tasks, deliver QA test results and reports' }
+    - { role: 'IT-Ops-App-Ops', desc: 'Application Operator, overall responsibility to operate an application' }
+    - { role: 'IT-Ops-Plt-Ops', desc: 'Platform Operator, operates the Application Platform infrastructure, including storage provisioning, but not the SOE' }
+    - { role: 'IT-Ops-Plt-Mgr', desc: 'Operations Manager, a read-only role primarily for reporting' }
+    - { role: 'IT-Mgmt-Sat-Adm', desc: 'Satellite Administrator, top-level admin role with unlimited access control to all Satellite' }
+    - { role: 'IT-Mgmt-Lic-Adm', desc: 'License Management Administrator, taking care of license and subscription management to satisfy various compliance requirements' }
+    - { role: 'IT-Mgmt-OS-Adm', desc: 'Operating System Administrator, maintain service of an operating system instance, physical or virtual' }
+    - { role: 'IT-Mgmt-Sys-Eng', desc: 'Core Build Systems Engineer, defines the core build (operating system)' }
+    - { role: 'IT-Mgmt-IT-Ops', desc: 'Infrastructure Operator, maintain server for Network, Storage, Compute resource' }
+    - { role: 'IT-Sec-Sec-Eng', desc: 'Security Engineer, ensures security aspects on all levels' }
+
+- name: add users to idm
+  command: 'ipa user-add {{ item.user }} --sshpubkey="{{ item.ssh_key_pub }}" --first="{{ item.first_name }}" --last="{{ item.last_name }}"'
+  ignore_errors: yes
+  with_items:
+    - { user: 'jdoe', ssh_key_pub: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7kGlGXjSNcwwQW1W19DtSo+9tjWTeiQyp4ctC1wLikrKC2yTpuw2e3lFIRu4AxbOgaUwhMdsMbv2EJqh0ypZmFQ1G5f28dLnKXhdGh9U8EyeMr7THx5Uq/E5H5RSUxl9hL8taQjotXLHW/KxAj7zrDgXont1cJXF7BORZSGpc95wo7YCoy+tRRLdahQqvOp15EcEDZswRm5SrpPAxeQP78O8Tzcmn1yQW7vO1j5Rr5PrmJPZGQ8a7hY4xtp5OTCG8qAFSLysXrET6VJjCgCYVy9PhAvqMrlGDbA4xzmKQujgolJiG2eP33D4/Ox/l9T8BBtO5XdNp714/JOXnSN5V jdoe@idm.example.com', first_name: 'John', last_name: 'Doe' }
+    - { user: 'jsmith', ssh_key_pub: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCeXmDtbB+NaZT7UCEAjj6HFhk0tXkIjGCgVkuq2p9spvkkFuJDZB0x8CrqHZmP4DiT4CYfJpmNC3x0BemAwzmB4Bj0VbrRQdyXGI3CYZTTIOgXv18Su2jXMlSz5irBJFHvZ4+4bkDUbVsvYdIv0kgJNA/AHS9OZj/ebapbyukGApi3YEGQBdPxXjTnc6P/tO0t0cf0XE4ngDDZhxGWx4bH6EsrJJ3eC0UgI8ZDoELzRq/DV3rZnhH/OAVKQzNuFx5+K0KHLbtl/l9Xh+MCV7X6d05VxxEVdn/y31EF3VfFLLHQ3R7BmbEbQoUc/ZB4rABKFzN0pR6BQW9EiIdhNdZR jsmith@idm.example.com', first_name: 'Jane', last_name: 'Smith' }
+    - { user: 'mjones', ssh_key_pub: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCrW0srB+T4+MCIe0r2SdAJLk/G1mJ9LCgDgsCqnLGUJmLYeste934JBlcF4PYP18HKdjixlO/uBlcufzivsFY5VwlG0zWUtkVvKZGifIIDnd9PYdHPbFOE6UE3Uwa59xrZUFdIE75ZsXV0rrbw7MHwxvM6sEd6c8GrQqp4EbDXR6eD+bxbd3R4NQf5CFxfgX6mQLPSv/niNEbtzif7RCnFJockRruji0LuRpzP5XxytJCU6MDp1T5g9DzKBqlWt18+yED7o/4U/6IDeF4wVaXN/1DmQl24lyj2ZdfkVtdDDeNE73+ZR/wllvwz4356x/D+8wkFfxLHx+Dg3XA5GWW5 mjones@idm.example.com', first_name: 'Mary', last_name: 'Jones' }
+    - { user: 'jblow', ssh_key_pub: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD5GmYZolCf0L1NCs4bKy5+kc6AbWsHgpI2m3D1JsMZbfgj5wYRTGqH/W+BVfoa9Q57/32HfEND9caXAcogjFMHmSsgKmvsFP385jO0Rty5SngppLULam7x43vJtVliOLtdJZ2p1zacONTnZgUA2ADeoN4GesV7dpoH3RQp4dBrD4frfxf0rB8GxG6ap/LMBmDKMm43DSeiq6HRsuxme4J/DRRpRKzXgrUW7/6p7d00W90/YboM60X413Vh+mQCqr3KDkPS084HmAwlM6+oud0VDkZawHp6w6O/5FAMhtBhSahr7TmFCjLdpAnmAtg6tA3Rq4Lmq1cr+gvmkdYgKcq9 jblow@idm.example.com', first_name: 'Joe', last_name: 'Blow' }
+    - { user: 'bjensen', ssh_key_pub: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfnb9IlE0azFO/V8hJYrjPykHM4Dq1oG1YIiqr6Lyb24w+4bDpG8yS/13vMSSEv301IdIA0pXO/em2+PnlLYdY+tMSnd1EuSekGTAZhbHO79wMfP48VgOCo4VOf5ZGgz8zf6K6WdP6n72dEmrkEgcDJMcAyuo70ZgSSsBzOWK5q0GLTcbRQ0+VacRr8lQI1gQb2czWX8omTOIecyZxDiRMHFV1D32klfR3AQFADx6RJCVVLVkuvp3HrxwtBXCZj+NV8wyPQREZ1CQHqESiXy2mm4Q+RheMVQDbxdZezvWOvXOTtT7St3v5fRPbolospuSHWjhbXlHFcUxdCjmbMBcR bjensen@idm.example.com', first_name: 'Bob', last_name: 'Jensen' }

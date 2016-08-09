@@ -1,0 +1,6 @@
+---
+- hosts: idm-servers
+  become: True
+  roles:
+    - common
+    - idm-server

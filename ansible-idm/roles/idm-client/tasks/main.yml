@@ -1,0 +1,20 @@
+---
+- name: template /etc/resolv.conf
+  template:
+    src: templates/resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: 0644
+ 
+- name: install idm client packages
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+      - ipa-client
+
+- name: configure idm client
+  command: ipa-client-install --unattended --domain={{ idm_domain }} --realm={{ idm_realm }} --enable-dns-updates --principal={{ idm_principal }} --password={{ idm_admin_password }} --no-ntp --mkhomedir --force-join creates=/etc/ipa/default.conf
+  no_log: true
+...

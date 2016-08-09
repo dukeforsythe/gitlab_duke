@@ -1,0 +1,5 @@
+---
+- hosts: idm-clients
+  become: True
+  roles:
+    - idm-client
