@@ -49,3 +49,7 @@
     state: restarted 
     pattern: chronyd
   when: chrony_conf|changed
+  
+- name: get crytpo key from server, put in folder
+  synchronize: src=/etc/chrony.keys dest=/etc/chrony.keys
+  delegate_to: "{{chrony_ntp_servers}}"
