@@ -1,0 +1,16 @@
+---
+### Basic setup
+
+remote_user: root
+become: yes
+become_method: sudo
+
+#Load Balancer Specific
+lb_method: "{{ load_balancer_method }}"
+server:    "{{ f5_server }}"
+user:      "{{ admin_user }}"
+name:      "{{ pool_name}}"
+password:  "{{ vault_f5_password }}"
+host:      "{{ node_host }}"
+port:      "{{ node_port }}"
+

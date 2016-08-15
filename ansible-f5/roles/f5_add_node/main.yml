@@ -1,0 +1,11 @@
+---
+- name: Add pool member
+  bigip_pool:
+      server: "{{ f5_server }}"
+      user: "{{ admin_user }}"
+      password: "{{ vault_f5_password }}"
+      state: "present"
+      name: "{{ pool_name}}"
+      partition: "Common"
+      host: "{{ node_host }}"
+      port: "{{ node_port }}"

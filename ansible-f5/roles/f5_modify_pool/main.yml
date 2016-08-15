@@ -1,0 +1,10 @@
+---
+- name: Modify Pool
+  bigip_pool:
+      server: "{{ f5_server }}"
+      user: "{{ admin_user }}"
+      password: "{{ vault_f5_password }}"
+      state: "present"
+      name: "{{ pool_name}}"
+      partition: "Common"
+      lb_method: "{{ load_balancer_method }}"
